@@ -3,8 +3,7 @@ Use NSX-T trace api for tracing between containers
 
 ### Run on a linux box ###
 
-* Download the nsxt-trace-linux.tgz from the artifacts directory.
-* tar xzvf ./nsxt-trace-linux.tgz
+* Download the latest nsxt-trace binary from [github release page](https://github.com/garreeoke/nsxt_trace/releases)
 * chmod +x nsxt-trace
 * mv nsxt-trace /usr/local/bin (or somewhere in PATH)
 
