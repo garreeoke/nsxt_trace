@@ -17,6 +17,7 @@ import (
 // Trace flow
 var nsx = flag.String("nsx-ip", "", "IP address of nsx manager")
 var user = flag.String("nsx-user", "admin", "Name of nsx users if other than admin")
+var pksUid = flag.String("pks-uid", "", "UID of the k8s cluster in pks")
 var project = flag.String("namespace", "", "Kubernetes namespace")
 var srcPod = flag.String("src-pod", "", "Pod name of the source")
 var srcPort = flag.String("src-port", "8080", "Port for the source")
@@ -37,6 +38,7 @@ type Args struct {
 	NsxManager string
 	NsxUser    string
 	NsxPass    string
+	PksUid     string
 	Project    string
 	SrcPod     string
 	SrcPort    string
@@ -67,7 +69,7 @@ func validate(a *Args) bool {
 		}
 	}
 	// Check the rest of the required variables
-	if a.Project == "" || a.SrcPod == "" || a.SrcPort == "" || a.DstPod == "" || a.DstPort == "" {
+	if a.Project == "" || a.SrcPod == "" || a.SrcPort == "" || a.DstPod == "" || a.DstPort == "" || a.PksUid == "" {
 		fmt.Println("Missing required variable")
 	}
 
@@ -78,6 +80,7 @@ func RequiredVars() {
 	fmt.Println("Required:")
 	fmt.Println("	--nsx-ip ", "Or set NSX_MANAGER env variable")
 	fmt.Println("	--nsx-pass ", "Or set NSX_PASS env variable")
+	fmt.Println("	--pks-uid ", "UID for cluster in pks")
 	fmt.Println("	--namespace")
 	fmt.Println("	--src-pod")
 	fmt.Println("	--src-port")
@@ -95,6 +98,7 @@ func main() {
 	a := Args{
 		NsxManager: *nsx,
 		NsxUser:    *user,
+		PksUid:     *pksUid,
 		Project:    *project,
 		SrcPod:     *srcPod,
 		SrcPort:    *srcPort,
@@ -297,6 +301,7 @@ func getLogicalPort(c *http.Client, pod, nameSpace string, a *Args) (*LogicalPor
 	for _, lp := range logicalPortsResult.Result {
 		podCheck := false
 		nsCheck := false
+		pksCheck := false
 		// Check for tags
 		for _, tag := range lp.Tags {
 			if tag["scope"] == "ncp/pod" && tag["tag"] == pod {
@@ -305,8 +310,11 @@ func getLogicalPort(c *http.Client, pod, nameSpace string, a *Args) (*LogicalPor
 			if tag["scope"] == "ncp/project" && tag["tag"] == nameSpace {
 				nsCheck = true
 			}
+			if tag["scope"] == "ncp/cluster" && tag["tag"] == "pks-" + a.PksUid {
+				pksCheck = true
+			}
 		}
-		if podCheck && nsCheck {
+		if podCheck && nsCheck && pksCheck {
 			logicalPort = &lp
 			break
 		}
