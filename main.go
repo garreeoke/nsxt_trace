@@ -156,6 +156,9 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error getting source logical port: ", err)
 	}
+	if srcLogicalPort == nil {
+		log.Fatalln("No logical port found for source pod: ", a.SrcPod)
+	}
 	trace.LogicalPortId = srcLogicalPort.Id
 	trace.Packet.IpHeader.SrcIp = srcLogicalPort.AddressBindings[0]["ip_address"]
 	trace.Packet.EthHeader.SrcMac = srcLogicalPort.AddressBindings[0]["mac_address"]
@@ -166,6 +169,9 @@ func main() {
 	dstLogicalPort, err := getLogicalPort(&client, a.DstPod, a.DstProject, &a)
 	if err != nil {
 		log.Fatalln("Error getting destination logical port: ", err)
+	}
+	if dstLogicalPort == nil {
+		log.Fatalln("No logical port found for destination pod: ", a.DstPod)
 	}
 	trace.Packet.IpHeader.DstIp = dstLogicalPort.AddressBindings[0]["ip_address"]
 	trace.Packet.EthHeader.DstMac = dstLogicalPort.AddressBindings[0]["mac_address"]
